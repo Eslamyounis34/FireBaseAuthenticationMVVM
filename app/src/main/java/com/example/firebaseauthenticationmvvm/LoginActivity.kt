@@ -14,6 +14,8 @@ import com.example.firebaseauthenticationmvvm.repo.AuthRepository
 import com.example.firebaseauthenticationmvvm.utils.Resource
 import com.example.firebaseauthenticationmvvm.utils.SignInResult
 import com.example.firebaseauthenticationmvvm.view_models.LoginViewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
     lateinit var binding: ActivityLoginBinding
@@ -27,6 +29,21 @@ class LoginActivity : AppCompatActivity() {
         val repo = AuthRepository(this)
         val viewModelFactory = ViewModelFactory(repo)
         viewModel = ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
+
+        val firebaseAuth = Firebase.auth
+
+        firebaseAuth.addAuthStateListener { auth ->
+            val currentUser = auth.currentUser
+            if (currentUser != null) {
+                Toast.makeText(this, currentUser.email.toString(), Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(this, "logged in", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this,HomeActivity::class.java))
+            } else {
+                Toast.makeText(this, "not logged", Toast.LENGTH_SHORT).show()
+
+            }
+        }
 
 
         binding.loginButton.setOnClickListener {
