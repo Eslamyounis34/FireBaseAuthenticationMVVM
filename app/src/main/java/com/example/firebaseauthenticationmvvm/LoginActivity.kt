@@ -20,6 +20,7 @@ import com.google.firebase.ktx.Firebase
 class LoginActivity : AppCompatActivity() {
     lateinit var binding: ActivityLoginBinding
     lateinit var viewModel: LoginViewModel
+    val firebaseAuth = Firebase.auth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,22 +30,6 @@ class LoginActivity : AppCompatActivity() {
         val repo = AuthRepository(this)
         val viewModelFactory = ViewModelFactory(repo)
         viewModel = ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
-
-        val firebaseAuth = Firebase.auth
-
-        firebaseAuth.addAuthStateListener { auth ->
-            val currentUser = auth.currentUser
-            if (currentUser != null) {
-                Toast.makeText(this, currentUser.email.toString(), Toast.LENGTH_SHORT).show()
-
-                Toast.makeText(this, "logged in", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this,HomeActivity::class.java))
-            } else {
-                Toast.makeText(this, "not logged", Toast.LENGTH_SHORT).show()
-
-            }
-        }
-
 
         binding.loginButton.setOnClickListener {
             loginUserWithEmail()
@@ -63,19 +48,29 @@ class LoginActivity : AppCompatActivity() {
                 is SignInResult.Error -> {
                     // Handle sign-in error
                     Log.e("GmailLogin",result.toString())
-
                 }
             }
         })
     }
 
+    override fun onStart() {
+        super.onStart()
+        firebaseAuth.addAuthStateListener { auth ->
+            val currentUser = auth.currentUser
+            if (currentUser != null) {
+                Toast.makeText(this, currentUser.email.toString(), Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(this, "logged in", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this,HomeActivity::class.java))
+            } else {
+                Toast.makeText(this, "not logged", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         viewModel.onActivityResult(requestCode, resultCode, data)
-
     }
-
-
     private fun loginUserWithEmail() {
         var email = "eslam@gmail.com"
         var password = "123456"
@@ -84,7 +79,6 @@ class LoginActivity : AppCompatActivity() {
                 is Resource.Success -> {
                     // Login successful, navigate to home screen
                     Toast.makeText(this, "DONE", Toast.LENGTH_SHORT).show()
-
                 }
                 is Resource.Error -> {
                     // Login failed, show error message
@@ -93,14 +87,11 @@ class LoginActivity : AppCompatActivity() {
                 is Resource.Loading -> {
                     // Show progress bar
                     Toast.makeText(this, "LOADING", Toast.LENGTH_SHORT).show()
-
                 }
             }
         }
     }
-
     private fun loginUserWithGmail(){
         viewModel.signIn()
-
     }
 }
